@@ -6,14 +6,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <base href="~/" />
-    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-    <link href="css/site.css" rel="stylesheet" />
-    <link href="QuickSurvey.styles.css" rel="stylesheet" />
+    <title>Quick Survey</title>
+    @*
+        see for more information regarding applying a Blazor theme:
+        https://docs.devexpress.com/Blazor/401523/common-concepts/customize-appearance/themes#apply-a-built-in-devexpress-theme
+    *@
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <base href="~/"/>
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css"/>
+    <link rel="stylesheet" href="_content/DevExpress.Blazor.Themes/bootstrap-external.bs5.min.css"/>
+    <link href="css/site.css" rel="stylesheet"/>
     <link rel="icon" type="image/png" href="favicon.png"/>
-    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered"/>
 </head>
 <body>
     <component type="typeof(App)" render-mode="ServerPrerendered" />

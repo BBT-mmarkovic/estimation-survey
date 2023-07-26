@@ -66,3 +66,16 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+/* ------------------------------------------------------------------ */
+
+.my-toolbar-item {
+    background-color: mediumpurple;
+    border-color: mediumpurple;
+}
+
+/* Style for the displayed user name  */
+.idStyle {
+     font-weight: bold;
+     color: lightseagreen
+ }

@@ -1,0 +1,1245 @@
+﻿@page "/Uebung3"
+@using QuickSurvey.Controllers
+@using QuickSurvey.Data
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using QuickSurvey.Data.Uebung3
+@inject ProtectedLocalStorage ProtectedLocalStore
+
+@* from: https://medium.com/it-dead-inside/lets-learn-blazor-working-with-url-parameters-and-query-strings-37e1f8aacec7 *@
+@inject NavigationManager NavigationManager
+
+@code {
+    private const string Vote = "🔵"; // blue circle: https://emojipedia.org/large-blue-circle/
+    private const string OwnVote = "🟡"; // yellow circle: https://emojipedia.org/large-yellow-circle/
+
+    private string myIconValue = "jdenticon";
+    private string myUserName = "-";
+
+    private bool showResultsImmediately = false;
+}
+
+<span style="font-size: small"><a href="/">&lt;- zurück</a></span>
+
+<h3>Übung 3</h3>
+<p>
+    Schätze die relative Flächengrösse der folgenden Länder relativ zueinander. Als Referenzwert gilt die Schweiz mit der Grösse S.
+</p>
+<p>
+    <img src="img/europe-political-map.jpg" alt="European Countries" style="max-width: 60%" /><br />
+    <span style="font-size: x-small">image source: <a href="https://www.freeworldmaps.net/europe/political.html">freeworldmaps.net</a></span>
+</p>
+<p>
+    Für die Auswertung wurde dir die folgende Kennung zugewiesen: <span class="idStyle">@myUserName</span>
+</p>
+@if (!ResponseStore.EstimateUebung3Submitted(myUserName) && !showResultsImmediately)
+{
+    <div class="cw-880">
+        <EditForm Model="@_uebung3Estimates"
+              OnValidSubmit="@HandleValidSubmit"
+              OnInvalidSubmit="@HandleInvalidSubmit"
+              Context="EditFormContext"
+              class="w-800">
+            <DataAnnotationsValidator />
+            <div class="col-md-6" style="padding-bottom: 12px; ">
+                <label>
+                    Österreich:
+                </label>
+                <DxRadioGroup @bind-Value="@_uebung3Estimates.Oesterreich"
+                          Items="@(Enum.GetValues(typeof(TShirtSize)).Cast<TShirtSize>())"
+                          Layout="@RadioGroupLayout.Horizontal" />
+            </div>
+            <div class="col-md-6" style="padding-bottom: 12px">
+                <label>
+                    Deutschland:
+                </label>
+                <DxRadioGroup @bind-Value="@_uebung3Estimates.Deutschland"
+                          Items="@(Enum.GetValues(typeof(TShirtSize)).Cast<TShirtSize>())"
+                          Layout="@RadioGroupLayout.Horizontal" />
+            </div>
+            <div class="col-md-6" style="padding-bottom: 12px">
+                <label>
+                    Frankreich:
+                </label>
+                <DxRadioGroup @bind-Value="@_uebung3Estimates.Frankreich"
+                          Items="@(Enum.GetValues(typeof(TShirtSize)).Cast<TShirtSize>())"
+                          Layout="@RadioGroupLayout.Horizontal" />
+            </div>
+            <div class="col-md-6" style="padding-bottom: 12px">
+                <label>
+                    Liechtenstein:
+                </label>
+                <DxRadioGroup @bind-Value="@_uebung3Estimates.Liechtenstein"
+                          Items="@(Enum.GetValues(typeof(TShirtSize)).Cast<TShirtSize>())"
+                          Layout="@RadioGroupLayout.Horizontal" />
+            </div>
+            <div class="col-md-6" style="padding-bottom: 12px">
+                <label>
+                    Italien:
+                </label>
+                <DxRadioGroup @bind-Value="@_uebung3Estimates.Italien"
+                          Items="@(Enum.GetValues(typeof(TShirtSize)).Cast<TShirtSize>())"
+                          Layout="@RadioGroupLayout.Horizontal" />
+            </div>
+            <div class="col-md-6" style="padding-bottom: 12px">
+                <label>
+                    Russland:
+                </label>
+                <DxRadioGroup @bind-Value="@_uebung3Estimates.Russland"
+                          Items="@(Enum.GetValues(typeof(TShirtSize)).Cast<TShirtSize>())"
+                          Layout="@RadioGroupLayout.Horizontal" />
+            </div>
+            <div class="col-md-6" style="padding-bottom: 12px">
+                <label>
+                    England:
+                </label>
+                <DxRadioGroup @bind-Value="@_uebung3Estimates.England"
+                          Items="@(Enum.GetValues(typeof(TShirtSize)).Cast<TShirtSize>())"
+                          Layout="@RadioGroupLayout.Horizontal" />
+            </div>
+            <div class="col-md-6" style="padding-bottom: 12px">
+                <label>
+                    Malta:
+                </label>
+                <DxRadioGroup @bind-Value="@_uebung3Estimates.Malta"
+                          Items="@(Enum.GetValues(typeof(TShirtSize)).Cast<TShirtSize>())"
+                          Layout="@RadioGroupLayout.Horizontal" />
+            </div>
+            <div class="col-md-6" style="padding-bottom: 12px">
+                <label>
+                    Griechenland:
+                </label>
+                <DxRadioGroup @bind-Value="@_uebung3Estimates.Griechenland"
+                          Items="@(Enum.GetValues(typeof(TShirtSize)).Cast<TShirtSize>())"
+                          Layout="@RadioGroupLayout.Horizontal" />
+            </div>
+            <div class="col-md-6" style="padding-bottom: 12px">
+                <label>
+                    Lettland:
+                </label>
+                <DxRadioGroup @bind-Value="@_uebung3Estimates.Lettland"
+                          Items="@(Enum.GetValues(typeof(TShirtSize)).Cast<TShirtSize>())"
+                          Layout="@RadioGroupLayout.Horizontal" />
+            </div>
+            <div class="col-md-6" style="padding-bottom: 12px">
+                <DxButton SubmitFormOnClick="true"
+                      Text="Schätzung abgeben"
+                      RenderStyle="ButtonRenderStyle.Secondary" />
+            </div>
+        </EditForm>
+    </div>
+    <div class="row w-100 mx-0">
+        <p class="col-12 mt-2">
+            <span style="font-style: italic">@FormValidationState</span>
+        </p>
+    </div>
+}
+else
+{
+    var allOtherResponses = ResponseStore.GetAllUebung3()
+        .Where(x => x.UserId != this.myUserName).ToArray();
+    var myEstimate = ResponseStore.GetEstimateUebung3(myUserName);
+
+    <DxGridLayout CssClass="w-100 ch-480">
+        <Rows>
+            <DxGridLayoutRow />
+            <DxGridLayoutRow />
+            <DxGridLayoutRow />
+            <DxGridLayoutRow />
+            <DxGridLayoutRow />
+            <DxGridLayoutRow />
+            <DxGridLayoutRow />
+            <DxGridLayoutRow />
+            <DxGridLayoutRow />
+            <DxGridLayoutRow />
+            <DxGridLayoutRow />
+        </Rows>
+        <Columns>
+            <DxGridLayoutColumn Width="45%" />
+            <DxGridLayoutColumn />
+            <DxGridLayoutColumn />
+            <DxGridLayoutColumn />
+            <DxGridLayoutColumn />
+            <DxGridLayoutColumn />
+        </Columns>
+        <Items>
+            <DxGridLayoutItem Row="0" Column="1">
+                <Template>
+                    <b>XS</b>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="0" Column="2">
+                <Template>
+                    <b>S</b>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="0" Column="3">
+                <Template>
+                    <b>M</b>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="0" Column="4">
+                <Template>
+                    <b>L</b>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="0" Column="5">
+                <Template>
+                    <b>XL</b>
+                </Template>
+            </DxGridLayoutItem>
+
+            <!--
+            Österreich
+            -->
+            <DxGridLayoutItem Row="1" Column="0">
+                <Template>
+                    <img src="img/austria.png" width="25"  /> Österreich: <b>83’871</b> km^2 (S)
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="1" Column="1">
+                <Template>
+                <div class="row w-100 mx-0">
+                <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Oesterreich == TShirtSize.XS)
+                        {
+                            <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Oesterreich == TShirtSize.XS); i++)
+                        {
+                            <span>@Vote</span>
+                        }
+                    }
+                </p>
+                </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="1" Column="2">
+                <Template>
+                    <div class="row w-100 mx-0">
+                            <p class="col-12 mt-2" style="background-color: lightblue">
+                                @{
+                                    if (myEstimate.Oesterreich == TShirtSize.S)
+                                    {
+                                            <span>@OwnVote</span>
+                                    }
+                                    for (int i = 0; i < allOtherResponses.Count(x => x.Oesterreich == TShirtSize.S); i++)
+                                    {
+                                            <span>@Vote</span>
+                                    }
+                                }
+                                &nbsp;
+                            </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="1" Column="3">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Oesterreich == TShirtSize.M)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Oesterreich == TShirtSize.M); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="1" Column="4">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Oesterreich == TShirtSize.L)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Oesterreich == TShirtSize.L); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="1" Column="5">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Oesterreich == TShirtSize.XL)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Oesterreich == TShirtSize.XL); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+
+
+            <!--
+            Deutschland
+            -->
+            <DxGridLayoutItem Row="2" Column="0">
+                <Template>
+                    <img src="img/germany.png" width="25"  /> Deutschland: <b>357’588</b> km^2 (L)
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="2" Column="1">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Deutschland == TShirtSize.XS)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Deutschland == TShirtSize.XS); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="2" Column="2">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Deutschland == TShirtSize.S)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Deutschland == TShirtSize.S); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="2" Column="3">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Deutschland == TShirtSize.M)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Deutschland == TShirtSize.M); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="2" Column="4">
+                <Template>
+                        <div class="row w-100 mx-0">
+                                <p class="col-12 mt-2" style="background-color: lightblue">
+                                    @{
+                                        if (myEstimate.Deutschland == TShirtSize.L)
+                                        {
+                                                <span>@OwnVote</span>
+                                        }
+                                        for (int i = 0; i < allOtherResponses.Count(x => x.Deutschland == TShirtSize.L); i++)
+                                        {
+                                                <span>@Vote</span>
+                                        }
+                                    }
+                                    &nbsp;
+                                </p>
+                        </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="2" Column="5">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Deutschland == TShirtSize.XL)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Deutschland == TShirtSize.XL); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+
+
+            <!--
+            Frankreich
+            -->
+            <DxGridLayoutItem Row="3" Column="0">
+                <Template>
+                    <img src="img/france.png" width="25"  /> Frankreich: <b>551’695</b> km^2 (L)
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="3" Column="1">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Frankreich == TShirtSize.XS)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Frankreich == TShirtSize.XS); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="3" Column="2">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Frankreich == TShirtSize.S)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Frankreich == TShirtSize.S); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="3" Column="3">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Frankreich == TShirtSize.M)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Frankreich == TShirtSize.M); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="3" Column="4">
+                <Template>
+                        <div class="row w-100 mx-0">
+                                <p class="col-12 mt-2" style="background-color: lightblue">
+                                    @{
+                                        if (myEstimate.Frankreich == TShirtSize.L)
+                                        {
+                                                <span>@OwnVote</span>
+                                        }
+                                        for (int i = 0; i < allOtherResponses.Count(x => x.Frankreich == TShirtSize.L); i++)
+                                        {
+                                                <span>@Vote</span>
+                                        }
+                                    }
+                                    &nbsp;
+                                </p>
+                        </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="3" Column="5">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Frankreich == TShirtSize.XL)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Frankreich == TShirtSize.XL); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+
+
+            <!--
+            Liechtenstein
+            -->
+            <DxGridLayoutItem Row="4" Column="0">
+                <Template>
+                    <img src="img/liechtenstein.png" width="25"  /> Liechtenstein: <b>158</b> km^2 (XS)
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="4" Column="1">
+                <Template>
+                    <div class="row w-100 mx-0">
+                            <p class="col-12 mt-2" style="background-color: lightblue">
+                                    @{
+                                        if (myEstimate.Liechtenstein == TShirtSize.XS)
+                                        {
+                                                <span>@OwnVote</span>
+                                        }
+                                        for (int i = 0; i < allOtherResponses.Count(x => x.Liechtenstein == TShirtSize.XS); i++)
+                                        {
+                                                <span>@Vote</span>
+                                        }
+                                    }
+                                    &nbsp;
+                            </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="4" Column="2">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Liechtenstein == TShirtSize.S)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Liechtenstein == TShirtSize.S); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="4" Column="3">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Liechtenstein == TShirtSize.M)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Liechtenstein == TShirtSize.M); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="4" Column="4">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Liechtenstein == TShirtSize.L)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Liechtenstein == TShirtSize.L); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="4" Column="5">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Liechtenstein == TShirtSize.XL)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Liechtenstein == TShirtSize.XL); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+
+
+            <!--
+            Italien
+            -->
+            <DxGridLayoutItem Row="5" Column="0">
+                <Template>
+                    <img src="img/italy.png" width="25"  /> Italien: <b>302’073</b> km^2 (L)
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="5" Column="1">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Italien == TShirtSize.XS)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Italien == TShirtSize.XS); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="5" Column="2">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Italien == TShirtSize.S)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Italien == TShirtSize.S); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="5" Column="3">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Italien == TShirtSize.M)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Italien == TShirtSize.M); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="5" Column="4">
+                <Template>
+                        <div class="row w-100 mx-0">
+                                <p class="col-12 mt-2" style="background-color: lightblue">
+                                    @{
+                                        if (myEstimate.Italien == TShirtSize.L)
+                                        {
+                                                <span>@OwnVote</span>
+                                        }
+                                        for (int i = 0; i < allOtherResponses.Count(x => x.Italien == TShirtSize.L); i++)
+                                        {
+                                                <span>@Vote</span>
+                                        }
+                                    }
+                                    &nbsp;
+                                </p>
+                        </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="5" Column="5">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Italien == TShirtSize.XL)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Italien == TShirtSize.XL); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+
+
+            <!--
+            Russland
+            -->
+            <DxGridLayoutItem Row="6" Column="0">
+                <Template>
+                    <img src="img/russia.png" width="25"  /> Russland: <b> &gt; 17’000'000</b> km^2 (XL)
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="6" Column="1">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Russland == TShirtSize.XS)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Russland == TShirtSize.XS); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="6" Column="2">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Russland == TShirtSize.S)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Russland == TShirtSize.S); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="6" Column="3">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Russland == TShirtSize.M)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Russland == TShirtSize.M); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="6" Column="4">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Russland == TShirtSize.L)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Russland == TShirtSize.L); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+                <DxGridLayoutItem Row="6" Column="5">
+                    <Template>
+                        <div class="row w-100 mx-0">
+                            <p class="col-12 mt-2" style="background-color: lightblue">
+                                @{
+                                    if (myEstimate.Russland == TShirtSize.XL)
+                                    {
+                                            <span>@OwnVote</span>
+                                    }
+                                    for (int i = 0; i < allOtherResponses.Count(x => x.Russland == TShirtSize.XL); i++)
+                                    {
+                                            <span>@Vote</span>
+                                    }
+                                }
+                                &nbsp;
+                            </p>
+                        </div>
+                    </Template>
+                </DxGridLayoutItem>
+
+
+            <!--
+            England
+            -->
+            <DxGridLayoutItem Row="7" Column="0">
+                <Template>
+                    <img src="img/england.png" width="25"  /> England: <b>130’279</b> km^2 (M)
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="7" Column="1">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.England == TShirtSize.XS)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.England == TShirtSize.XS); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="7" Column="2">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.England == TShirtSize.S)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.England == TShirtSize.S); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="7" Column="3">
+                <Template>
+                    <div class="row w-100 mx-0">
+                            <p class="col-12 mt-2" style="background-color: lightblue">
+                                    @{
+                                        if (myEstimate.England == TShirtSize.M)
+                                        {
+                                                <span>@OwnVote</span>
+                                        }
+                                        for (int i = 0; i < allOtherResponses.Count(x => x.England == TShirtSize.M); i++)
+                                        {
+                                                <span>@Vote</span>
+                                        }
+                                    }
+                                    &nbsp;
+                            </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="7" Column="4">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.England == TShirtSize.L)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.England == TShirtSize.L); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="7" Column="5">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.England == TShirtSize.XL)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.England == TShirtSize.XL); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+
+
+            <!--
+            Malta
+            -->
+            <DxGridLayoutItem Row="8" Column="0">
+                <Template>
+                    <img src="img/malta.png" width="25"  /> Malta: <b>316</b> km^2 (XS)
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="8" Column="1">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2" style="background-color: lightblue">
+                        @{
+                            if (myEstimate.Malta == TShirtSize.XS)
+                            {
+                                    <span>@OwnVote</span>
+                            }
+                            for (int i = 0; i < allOtherResponses.Count(x => x.Malta == TShirtSize.XS); i++)
+                            {
+                                    <span>@Vote</span>
+                            }
+                        }
+                        &nbsp;
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="8" Column="2">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Malta == TShirtSize.S)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Malta == TShirtSize.S); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="8" Column="3">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                        @{
+                            if (myEstimate.Malta == TShirtSize.M)
+                            {
+                                    <span>@OwnVote</span>
+                            }
+                            for (int i = 0; i < allOtherResponses.Count(x => x.Malta == TShirtSize.M); i++)
+                            {
+                                    <span>@Vote</span>
+                            }
+                        }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="8" Column="4">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Malta == TShirtSize.L)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Malta == TShirtSize.L); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="8" Column="5">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Malta == TShirtSize.XL)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Malta == TShirtSize.XL); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+
+
+            <!--
+            Griechenland
+            -->
+            <DxGridLayoutItem Row="9" Column="0">
+                <Template>
+                    <img src="img/greece.png" width="25"  /> Griechenland: <b>130’957</b> km^2 (M)
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="9" Column="1">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                        @{
+                            if (myEstimate.Griechenland == TShirtSize.XS)
+                            {
+                                    <span>@OwnVote</span>
+                            }
+                            for (int i = 0; i < allOtherResponses.Count(x => x.Griechenland == TShirtSize.XS); i++)
+                            {
+                                    <span>@Vote</span>
+                            }
+                        }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="9" Column="2">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Griechenland == TShirtSize.S)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Griechenland == TShirtSize.S); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="9" Column="3">
+                <Template>
+                <div class="row w-100 mx-0">
+                <p class="col-12 mt-2" style="background-color: lightblue">
+                        @{
+                            if (myEstimate.Griechenland == TShirtSize.M)
+                            {
+                                    <span>@OwnVote</span>
+                            }
+                            for (int i = 0; i < allOtherResponses.Count(x => x.Griechenland == TShirtSize.M); i++)
+                            {
+                                    <span>@Vote</span>
+                            }
+                        }
+                        &nbsp;
+                </p>
+                </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="9" Column="4">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Griechenland == TShirtSize.L)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Griechenland == TShirtSize.L); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="9" Column="5">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Griechenland == TShirtSize.XL)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Griechenland == TShirtSize.XL); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+
+
+            <!--
+            Lettland
+            -->
+            <DxGridLayoutItem Row="10" Column="0">
+                <Template>
+                    <img src="img/latvia.png" width="25"  /> Lettland: <b>64’589</b> km^2 (S)
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="10" Column="1">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                        @{
+                            if (myEstimate.Lettland == TShirtSize.XS)
+                            {
+                                    <span>@OwnVote</span>
+                            }
+                            for (int i = 0; i < allOtherResponses.Count(x => x.Lettland == TShirtSize.XS); i++)
+                            {
+                                    <span>@Vote</span>
+                            }
+                        }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="10" Column="2">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2" style="background-color: lightblue">
+                    @{
+                        if (myEstimate.Lettland == TShirtSize.S)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Lettland == TShirtSize.S); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    &nbsp;
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="10" Column="3">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                        @{
+                            if (myEstimate.Lettland == TShirtSize.M)
+                            {
+                                    <span>@OwnVote</span>
+                            }
+                            for (int i = 0; i < allOtherResponses.Count(x => x.Lettland == TShirtSize.M); i++)
+                            {
+                                    <span>@Vote</span>
+                            }
+                        }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="10" Column="4">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Lettland == TShirtSize.L)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Lettland == TShirtSize.L); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="10" Column="5">
+                <Template>
+                    <div class="row w-100 mx-0">
+                    <p class="col-12 mt-2">
+                    @{
+                        if (myEstimate.Lettland == TShirtSize.XL)
+                        {
+                                <span>@OwnVote</span>
+                        }
+                        for (int i = 0; i < allOtherResponses.Count(x => x.Lettland == TShirtSize.XL); i++)
+                        {
+                                <span>@Vote</span>
+                        }
+                    }
+                    </p>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+
+        </Items>
+    </DxGridLayout>
+}
+
+
+@code {
+    private Uebung3Estimates _uebung3Estimates = new();
+
+    protected override void OnInitialized()
+    {
+        this.showResultsImmediately = this.NavigationManager.Uri.Contains("showResults", StringComparison.OrdinalIgnoreCase);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var storedUserName = await ProtectedLocalStore.GetAsync<string>("myUserName");
+            if (storedUserName.Success && storedUserName.Value != null)
+            {
+                myUserName = storedUserName.Value;
+            }
+            else
+            {
+                myUserName = RandomNameGenerator.NextRandomName();
+                await ProtectedLocalStore.SetAsync("myUserName", myUserName);
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private string FormValidationState = @"";
+
+    void HandleValidSubmit()
+    {
+        FormValidationState = @"";
+        ResponseStore.SetEstimate(this.myUserName, this._uebung3Estimates);
+    }
+
+    void HandleInvalidSubmit()
+    {
+        FormValidationState = @"Eingabe unvollständig";
+    }
+}

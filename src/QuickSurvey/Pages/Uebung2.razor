@@ -1,0 +1,504 @@
+﻿@page "/Uebung2"
+@using QuickSurvey.Controllers
+@using QuickSurvey.Data
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using QuickSurvey.Data.Uebung2
+@inject ProtectedLocalStorage ProtectedLocalStore
+
+@* from: https://medium.com/it-dead-inside/lets-learn-blazor-working-with-url-parameters-and-query-strings-37e1f8aacec7 *@
+@inject NavigationManager NavigationManager
+
+@code {
+    private string myUserName = "-";
+    private bool showResultsImmediately = false;
+}
+
+<span style="font-size: small"><a href="/">&lt;- zurück</a></span>
+
+<h3>Übung 2</h3>
+<p>
+    Schätze die Luftentfernung zu den folgenden Hauptstädten auf 50km genau nach der 3-Punkt-Schätzung. Ausgangslage ist Luzern.
+</p>
+<p>
+    <img src="img/europe-cities.jpg" alt="Europe Cities" style="max-width: 60%" /><br />
+    <span style="font-size: x-small">image source: <a href="https://www.freeworldmaps.net/europe/cities.html">freeworldmaps.net</a></span>
+</p>
+<p>
+    Für die Auswertung wurde dir die folgende Kennung zugewiesen: <span class="idStyle">@myUserName</span>
+</p>
+@if (!ResponseStore.EstimateUebung2Submitted(myUserName) && !showResultsImmediately)
+{
+    
+    <EditForm Model="@uebung2Estimates"
+              OnValidSubmit="@HandleValidSubmit"
+              OnInvalidSubmit="@HandleInvalidSubmit"
+              Context="EditFormContext"
+              class="w-800">
+        <DataAnnotationsValidator/>
+
+        <DxGridLayout CssClass="w-100 ch-480">
+            <Rows>
+                <DxGridLayoutRow/>
+                <DxGridLayoutRow/>
+                <DxGridLayoutRow/>
+                <DxGridLayoutRow/>
+                <DxGridLayoutRow/>
+            </Rows>
+            <Columns>
+                <DxGridLayoutColumn/>
+                <DxGridLayoutColumn/>
+                <DxGridLayoutColumn/>
+                <DxGridLayoutColumn/>
+            </Columns>
+            <Items>
+                <DxGridLayoutItem Row="0" Column="1">
+                    <Template>
+                        <b>Min</b>
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="0" Column="2">
+                    <Template>
+                        <b>Likely</b>
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="0" Column="3">
+                    <Template>
+                        <b>Max</b>
+                    </Template>
+                </DxGridLayoutItem>
+
+                <!--
+                Paris
+                -->
+                <DxGridLayoutItem Row="1" Column="0">
+                    <Template>
+                        Paris, Frankreich
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="1" Column="1">
+                    <Template>
+                        <DxSpinEdit MinValue="0" MaxValue="10000" Increment="50"
+                                    @bind-Value="@uebung2Estimates.ToParis.BestCase" ShowValidationIcon="true"/>
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="1" Column="2">
+                    <Template>
+                        <DxSpinEdit MinValue="0" MaxValue="10000" Increment="50"
+                                    @bind-Value="@uebung2Estimates.ToParis.LikelyCase" ShowValidationIcon="true"/>
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="1" Column="3">
+                    <Template>
+                        <DxSpinEdit MinValue="0" MaxValue="10000" Increment="50"
+                                    @bind-Value="@uebung2Estimates.ToParis.WorstCase" ShowValidationIcon="true"/>
+                    </Template>
+                </DxGridLayoutItem>
+
+                <!--
+                Oslo
+                -->
+                <DxGridLayoutItem Row="2" Column="0">
+                    <Template>
+                        Oslo, Norwegen
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="2" Column="1">
+                    <Template>
+                        <DxSpinEdit MinValue="0" MaxValue="10000" Increment="50"
+                                    @bind-Value="@uebung2Estimates.ToOslo.BestCase" ShowValidationIcon="true"/>
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="2" Column="2">
+                    <Template>
+                        <DxSpinEdit MinValue="0" MaxValue="10000" Increment="50"
+                                    @bind-Value="@uebung2Estimates.ToOslo.LikelyCase" ShowValidationIcon="true"/>
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="2" Column="3">
+                    <Template>
+                        <DxSpinEdit MinValue="0" MaxValue="10000" Increment="50"
+                                    @bind-Value="@uebung2Estimates.ToOslo.WorstCase" ShowValidationIcon="true"/>
+                    </Template>
+                </DxGridLayoutItem>
+
+                <!--
+                Lissabon, Portugal
+                -->
+                <DxGridLayoutItem Row="3" Column="0">
+                    <Template>
+                        Lissabon, Portugal
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="3" Column="1">
+                    <Template>
+                        <DxSpinEdit MinValue="0" MaxValue="10000" Increment="50"
+                                    @bind-Value="@uebung2Estimates.ToLissabon.BestCase" ShowValidationIcon="true"/>
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="3" Column="2">
+                    <Template>
+                        <DxSpinEdit MinValue="0" MaxValue="10000" Increment="50"
+                                    @bind-Value="@uebung2Estimates.ToLissabon.LikelyCase" ShowValidationIcon="true"/>
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="3" Column="3">
+                    <Template>
+                        <DxSpinEdit MinValue="0" MaxValue="10000" Increment="50"
+                                    @bind-Value="@uebung2Estimates.ToLissabon.WorstCase" ShowValidationIcon="true"/>
+                    </Template>
+                </DxGridLayoutItem>
+
+                <!--
+                Athen, Griechenland
+                -->
+                <DxGridLayoutItem Row="4" Column="0">
+                    <Template>
+                        Athen, Griechenland
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="4" Column="1">
+                    <Template>
+                        <DxSpinEdit MinValue="0" MaxValue="10000" Increment="50"
+                                    @bind-Value="@uebung2Estimates.ToAthen.BestCase" ShowValidationIcon="true"/>
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="4" Column="2">
+                    <Template>
+                        <DxSpinEdit MinValue="0" MaxValue="10000" Increment="50"
+                                    @bind-Value="@uebung2Estimates.ToAthen.LikelyCase" ShowValidationIcon="true"/>
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="4" Column="3">
+                    <Template>
+                        <DxSpinEdit MinValue="0" MaxValue="10000" Increment="50"
+                                    @bind-Value="@uebung2Estimates.ToAthen.WorstCase" ShowValidationIcon="true"/>
+                    </Template>
+                </DxGridLayoutItem>
+
+
+            </Items>
+        </DxGridLayout>
+
+        <DxFormLayout>
+            <DxFormLayoutItem ColSpanMd="12">
+                <DxButton SubmitFormOnClick="true"
+                          Text="Schätzung abgeben"
+                          RenderStyle="ButtonRenderStyle.Secondary"/>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem ColSpanMd="12">
+                <ValidationSummary />
+            </DxFormLayoutItem>
+        </DxFormLayout>
+
+    </EditForm>
+    
+    <div class="row w-100 mx-0">
+        <p class="col-12 mt-2">
+            <span style="font-style: italic">@FormValidationState</span>
+        </p>
+    </div>
+}
+else
+{
+    <style>
+        .greyBg {
+            background-color: lightsteelblue;
+        }
+        </style>
+    <!--
+    Paris
+    -->
+    <div class="row w-100 mx-0">
+        <p class="col-12 mt-2" style="background-color: lightblue">
+            Luftdistanz Luzern - Paris: <b>500</b> km
+        </p>
+    </div>
+    <div class="row w-100 mx-0">
+        <DxGrid Data="@uebung2ParisEstimates" 
+                T="Uebung2OnePertEstimateByUser"
+                CustomizeElement="Grid_CustomizeElement">
+            <Columns>
+                <DxGridDataColumn FieldName="UserId" Caption="Benutzer"/>
+                <DxGridDataColumn FieldName="Estimate.BestCase" Caption="Min"/>
+                <DxGridDataColumn FieldName="Estimate.LikelyCase" Caption="Likely"/>
+                <DxGridDataColumn FieldName="Estimate.WorstCase" Caption="Max"/>
+                <DxGridDataColumn FieldName="Estimate.Expected" Caption="Expected" />
+                <DxGridDataColumn FieldName="Estimate.StandardDeviation" Caption="Std. Dev." />
+                <DxGridDataColumn FieldName="Estimate.Variance" Caption="Varianz" />
+                <DxGridDataColumn FieldName="Estimate.ZScore" Caption="Z Score" />
+            </Columns>
+            <TotalSummary>
+                <DxGridSummaryItem SummaryType="GridSummaryItemType.Avg" FieldName="Estimate.BestCase" ValueDisplayFormat="0" />
+                <DxGridSummaryItem SummaryType="GridSummaryItemType.Avg" FieldName="Estimate.LikelyCase" ValueDisplayFormat="0" />
+                <DxGridSummaryItem SummaryType="GridSummaryItemType.Avg" FieldName="Estimate.WorstCase" ValueDisplayFormat="0" />
+            </TotalSummary>
+        </DxGrid>
+    </div>
+    <div class="row w-100 mx-0">
+        <DxChart Data="@uebung2ParisEstimates"
+                 T="Uebung2OnePertEstimateByUser">
+            <DxChartRangeBarSeries StartValueField="@((Uebung2OnePertEstimateByUser p) => p.Estimate.BestCase)"
+                                   EndValueField="@((Uebung2OnePertEstimateByUser p) => p.Estimate.WorstCase)"
+                                   ArgumentField="@((Uebung2OnePertEstimateByUser p) => p.UserId)" />
+            <DxChartTooltip Enabled="true">
+                @context.GetRangePoint().Render((rangePoint) =>
+                    @<div style="margin: 0.75rem">
+                        <div>@rangePoint.StartValue - @rangePoint.EndValue</div>
+                    </div>)
+            </DxChartTooltip>
+            <DxChartValueAxis>
+                <DxChartAxisTitle Text="Distanz [km]" />
+            </DxChartValueAxis>
+            <DxChartArgumentAxis>
+                <DxChartAxisLabel />
+            </DxChartArgumentAxis>
+            <DxChartLegend Visible="false" />
+        </DxChart>
+    </div>
+
+    <!--
+    Oslo
+    -->
+    <div class="row w-100 mx-0">
+        <p class="col-12 mt-2" style="background-color: lightblue">
+            Luftdistanz Luzern - Oslo: <b>1’450</b> km
+        </p>
+    </div>
+    <div class="row w-100 mx-0">
+        <DxGrid Data="@uebung2OsloEstimates" 
+                T="Uebung2OnePertEstimateByUser"
+                CustomizeElement="Grid_CustomizeElement">
+            <Columns>
+                <DxGridDataColumn FieldName="UserId" Caption="Benutzer"/>
+                <DxGridDataColumn FieldName="Estimate.BestCase" Caption="Min"/>
+                <DxGridDataColumn FieldName="Estimate.LikelyCase" Caption="Likely"/>
+                <DxGridDataColumn FieldName="Estimate.WorstCase" Caption="Max"/>
+                <DxGridDataColumn FieldName="Estimate.Expected" Caption="Expected" />
+                <DxGridDataColumn FieldName="Estimate.StandardDeviation" Caption="Std. Dev." />
+                <DxGridDataColumn FieldName="Estimate.Variance" Caption="Varianz" />
+                <DxGridDataColumn FieldName="Estimate.ZScore" Caption="Z Score" />
+            </Columns>
+            <TotalSummary>
+                <DxGridSummaryItem SummaryType="GridSummaryItemType.Avg" FieldName="Estimate.BestCase" ValueDisplayFormat="0" />
+                <DxGridSummaryItem SummaryType="GridSummaryItemType.Avg" FieldName="Estimate.LikelyCase" ValueDisplayFormat="0" />
+                <DxGridSummaryItem SummaryType="GridSummaryItemType.Avg" FieldName="Estimate.WorstCase" ValueDisplayFormat="0" />
+            </TotalSummary>
+        </DxGrid>
+    </div>
+    <div class="row w-100 mx-0">
+        <DxChart Data="@uebung2OsloEstimates"
+                 T="Uebung2OnePertEstimateByUser"
+                 CustomizeElement="Grid_CustomizeElement">
+            <DxChartRangeBarSeries StartValueField="@((Uebung2OnePertEstimateByUser p) => p.Estimate.BestCase)"
+                                   EndValueField="@((Uebung2OnePertEstimateByUser p) => p.Estimate.WorstCase)"
+                                   ArgumentField="@((Uebung2OnePertEstimateByUser p) => p.UserId)" />
+            <DxChartTooltip Enabled="true">
+                @context.GetRangePoint().Render((rangePoint) =>
+        @<div style="margin: 0.75rem">
+            <div>@rangePoint.StartValue - @rangePoint.EndValue</div>
+        </div>)
+            </DxChartTooltip>
+            <DxChartValueAxis>
+                <DxChartAxisTitle Text="Distanz [km]" />
+            </DxChartValueAxis>
+            <DxChartArgumentAxis>
+                <DxChartAxisLabel />
+            </DxChartArgumentAxis>
+            <DxChartLegend Visible="false" />
+        </DxChart>
+    </div>
+
+    <!--
+    Lissabon
+    -->
+    <div class="row w-100 mx-0">
+        <p class="col-12 mt-2" style="background-color: lightblue">
+            Luftdistanz Luzern - Lissabon: <b>1’700</b> km
+        </p>
+    </div>
+    <div class="row w-100 mx-0">
+        <DxGrid Data="@uebung2LissabonEstimates" 
+                T="Uebung2OnePertEstimateByUser"
+                CustomizeElement="Grid_CustomizeElement">
+            <Columns>
+                <DxGridDataColumn FieldName="UserId" Caption="Benutzer"/>
+                <DxGridDataColumn FieldName="Estimate.BestCase" Caption="Min"/>
+                <DxGridDataColumn FieldName="Estimate.LikelyCase" Caption="Likely"/>
+                <DxGridDataColumn FieldName="Estimate.WorstCase" Caption="Max"/>
+                <DxGridDataColumn FieldName="Estimate.Expected" Caption="Expected" />
+                <DxGridDataColumn FieldName="Estimate.StandardDeviation" Caption="Std. Dev." />
+                <DxGridDataColumn FieldName="Estimate.Variance" Caption="Varianz" />
+                <DxGridDataColumn FieldName="Estimate.ZScore" Caption="Z Score" />
+            </Columns>
+            <TotalSummary>
+                <DxGridSummaryItem SummaryType="GridSummaryItemType.Avg" FieldName="Estimate.BestCase" ValueDisplayFormat="0" />
+                <DxGridSummaryItem SummaryType="GridSummaryItemType.Avg" FieldName="Estimate.LikelyCase" ValueDisplayFormat="0" />
+                <DxGridSummaryItem SummaryType="GridSummaryItemType.Avg" FieldName="Estimate.WorstCase" ValueDisplayFormat="0" />
+            </TotalSummary>
+        </DxGrid>
+    </div>
+    <div class="row w-100 mx-0">
+        <DxChart Data="@uebung2LissabonEstimates"
+                 T="Uebung2OnePertEstimateByUser"
+                 CustomizeElement="Grid_CustomizeElement">
+            <DxChartRangeBarSeries StartValueField="@((Uebung2OnePertEstimateByUser p) => p.Estimate.BestCase)"
+                                   EndValueField="@((Uebung2OnePertEstimateByUser p) => p.Estimate.WorstCase)"
+                                   ArgumentField="@((Uebung2OnePertEstimateByUser p) => p.UserId)" />
+            <DxChartTooltip Enabled="true">
+                @context.GetRangePoint().Render((rangePoint) =>
+        @<div style="margin: 0.75rem">
+            <div>@rangePoint.StartValue - @rangePoint.EndValue</div>
+        </div>)
+            </DxChartTooltip>
+            <DxChartValueAxis>
+                <DxChartAxisTitle Text="Distanz [km]" />
+            </DxChartValueAxis>
+            <DxChartArgumentAxis>
+                <DxChartAxisLabel />
+            </DxChartArgumentAxis>
+            <DxChartLegend Visible="false" />
+        </DxChart>
+    </div>
+
+    <!--
+        Athen
+    -->
+    <div class="row w-100 mx-0">
+        <p class="col-12 mt-2" style="background-color: lightblue">
+            Luftdistanz Luzern - Athen: <b>1’600</b> km
+        </p>
+    </div>
+    <div class="row w-100 mx-0">
+        <DxGrid Data="@uebung2AthenEstimates" 
+                T="Uebung2OnePertEstimateByUser"
+                CustomizeElement="Grid_CustomizeElement">
+            <Columns>
+                <DxGridDataColumn FieldName="UserId" Caption="Benutzer"/>
+                <DxGridDataColumn FieldName="Estimate.BestCase" Caption="Min"/>
+                <DxGridDataColumn FieldName="Estimate.LikelyCase" Caption="Likely"/>
+                <DxGridDataColumn FieldName="Estimate.WorstCase" Caption="Max"/>
+                <DxGridDataColumn FieldName="Estimate.Expected" Caption="Expected" />
+                <DxGridDataColumn FieldName="Estimate.StandardDeviation" Caption="Std. Dev." />
+                <DxGridDataColumn FieldName="Estimate.Variance" Caption="Varianz" />
+                <DxGridDataColumn FieldName="Estimate.ZScore" Caption="Z Score" />
+            </Columns>
+            <TotalSummary>
+                <DxGridSummaryItem SummaryType="GridSummaryItemType.Avg" FieldName="Estimate.BestCase" ValueDisplayFormat="0" />
+                <DxGridSummaryItem SummaryType="GridSummaryItemType.Avg" FieldName="Estimate.LikelyCase" ValueDisplayFormat="0" />
+                <DxGridSummaryItem SummaryType="GridSummaryItemType.Avg" FieldName="Estimate.WorstCase" ValueDisplayFormat="0" />
+            </TotalSummary>
+        </DxGrid>
+    </div>
+    <div class="row w-100 mx-0">
+        <DxChart Data="@uebung2AthenEstimates"
+                 T="Uebung2OnePertEstimateByUser"
+                 CustomizeElement="Grid_CustomizeElement">
+            <DxChartRangeBarSeries StartValueField="@((Uebung2OnePertEstimateByUser p) => p.Estimate.BestCase)"
+                                   EndValueField="@((Uebung2OnePertEstimateByUser p) => p.Estimate.WorstCase)"
+                                   ArgumentField="@((Uebung2OnePertEstimateByUser p) => p.UserId)" />
+            <DxChartTooltip Enabled="true">
+                @context.GetRangePoint().Render((rangePoint) =>
+        @<div style="margin: 0.75rem">
+            <div>@rangePoint.StartValue - @rangePoint.EndValue</div>
+        </div>)
+            </DxChartTooltip>
+            <DxChartValueAxis>
+                <DxChartAxisTitle Text="Distanz [km]" />
+            </DxChartValueAxis>
+            <DxChartArgumentAxis>
+                <DxChartAxisLabel />
+            </DxChartArgumentAxis>
+            <DxChartLegend Visible="false" />
+        </DxChart>
+    </div>
+}
+
+@code
+{
+    private Uebung2Estimates uebung2Estimates = new();
+
+    private IEnumerable<Uebung2OnePertEstimateByUser> uebung2ParisEstimates =
+        ResponseStore
+            .GetAllUebung2()
+            .Select(x => new Uebung2OnePertEstimateByUser(x.UserId, x.ToParis));
+
+    private IEnumerable<Uebung2OnePertEstimateByUser> uebung2OsloEstimates =
+        ResponseStore
+            .GetAllUebung2()
+            .Select(x => new Uebung2OnePertEstimateByUser(x.UserId, x.ToOslo));
+
+    private IEnumerable<Uebung2OnePertEstimateByUser> uebung2LissabonEstimates =
+        ResponseStore
+            .GetAllUebung2()
+            .Select(x => new Uebung2OnePertEstimateByUser(x.UserId, x.ToLissabon));
+    
+    private IEnumerable<Uebung2OnePertEstimateByUser> uebung2AthenEstimates =
+        ResponseStore
+            .GetAllUebung2()
+            .Select(x => new Uebung2OnePertEstimateByUser(x.UserId, x.ToAthen));
+
+
+    protected override void OnInitialized()
+    {
+        this.showResultsImmediately = this.NavigationManager.Uri.Contains("showResults", StringComparison.OrdinalIgnoreCase);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var storedUserName = await ProtectedLocalStore.GetAsync<string>("myUserName");
+            if (storedUserName.Success && storedUserName.Value != null)
+            {
+                myUserName = storedUserName.Value;
+            }
+            else
+            {
+                myUserName = RandomNameGenerator.NextRandomName();
+                await ProtectedLocalStore.SetAsync("myUserName", myUserName);
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private string FormValidationState = @"";
+
+    void Grid_CustomizeElement(GridCustomizeElementEventArgs e) {
+        if (e.ElementType == GridElementType.DataCell)
+        {
+            var model = (Uebung2OnePertEstimateByUser)e.Grid.GetDataItem(e.VisibleIndex);
+            var fieldName = ((IGridDataColumn)e.Column).FieldName;
+            if (fieldName == "Estimate.Expected")
+            {
+                e.Style = "background-color: lightsteelblue";
+            }
+            else if (fieldName == "Estimate.StandardDeviation"
+                || fieldName == "Estimate.Variance"
+                || fieldName == "Estimate.ZScore")
+            {
+                e.Style = "background-color: lightgrey";
+            }
+        }
+        else if (e.ElementType == GridElementType.DataRow)
+        {
+            var model = (Uebung2OnePertEstimateByUser)e.Grid.GetDataItem(e.VisibleIndex);
+            if (model.UserId == this.myUserName)
+            {
+                e.Style = "background-color: yellow";
+            }
+        }
+    }
+    
+    void HandleValidSubmit()
+    {
+        FormValidationState = @"";
+        ResponseStore.SetEstimate(this.myUserName, this.uebung2Estimates);
+    }
+
+    void HandleInvalidSubmit()
+    {
+        FormValidationState = @"Eingabe unvollständig";
+    }
+}
